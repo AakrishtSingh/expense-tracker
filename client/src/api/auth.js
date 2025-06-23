@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // backend URL
+  baseURL: process.env.REACT_APP_API_URL || "https://expense-tracker-1v9a.onrender.com/api",
 });
 
 export const registerUser = (data) => API.post("/auth/register", data);

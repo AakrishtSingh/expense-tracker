@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import bgImage from "../images/back.avif";
-
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
@@ -20,7 +20,7 @@ const Dashboard = () => {
   const fetchTransactions = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/transactions", {
+      const res = await axios.get(`${API_URL}/transactions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,7 +39,7 @@ const Dashboard = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/transactions", form, {
+      await axios.post(`${API_URL}/transactions`, form, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -9,7 +9,7 @@ export const TransactionProvider = ({ children }) => {
   const fetchTransactions = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/transactions", {
+      const res = await axios.get("https://expense-tracker-1v9a.onrender.com/api/transactions", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTransactions(res.data);
