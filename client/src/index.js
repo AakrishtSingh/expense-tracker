@@ -1,14 +1,15 @@
 import React from "react";
-import "./index.css";
+import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
-import ReactDOM from "react-dom/client";
+import { TransactionProvider } from "./context/TransactionContext";
+import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <AuthProvider>
+  <AuthProvider>
+    <TransactionProvider>
       <App />
-    </AuthProvider>
-  </React.StrictMode>
+    </TransactionProvider>
+  </AuthProvider>
 );

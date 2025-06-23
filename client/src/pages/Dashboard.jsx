@@ -1,106 +1,118 @@
-import React, { useEffect, useState } from "react";
-import { getTransactions, addTransaction } from "../api/transaction";
-import { useAuth } from "../context/AuthContext";
+import React, { useState } from "react";
+import PieChartCard from "../components/Charts/PieChartCard";
+import { useTransactions } from "../context/TransactionContext";
+import axios from "axios";
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const [transactions, setTransactions] = useState([]);
+  const { transactions, fetchTransactions } = useTransactions();
   const [form, setForm] = useState({
-    type: "expense",
+    type: "income",
     category: "",
     amount: "",
     note: "",
   });
 
-  const fetchData = async () => {
-    const res = await getTransactions();
-    setTransactions(res.data);
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addTransaction(form);
-    setForm({ type: "expense", category: "", amount: "", note: "" });
-    fetchData();
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:5000/api/transactions", form, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setForm({ type: "income", category: "", amount: "", note: "" });
+      fetchTransactions();
+    } catch (err) {
+      console.error("Failed to add transaction", err);
+    }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const incomeData = transactions
+    .filter((tx) => tx.type === "income")
+    .reduce((acc, tx) => {
+      const found = acc.find((a) => a.category === tx.category);
+      if (found) found.amount += tx.amount;
+      else acc.push({ category: tx.category, amount: tx.amount });
+      return acc;
+    }, []);
 
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
+  const expenseData = transactions
+    .filter((tx) => tx.type === "expense")
+    .reduce((acc, tx) => {
+      const found = acc.find((a) => a.category === tx.category);
+      if (found) found.amount += tx.amount;
+      else acc.push({ category: tx.category, amount: tx.amount });
+      return acc;
+    }, []);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Welcome, {user?.name}</h2>
-
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-green-100 p-4 rounded shadow">
-          <h3 className="text-lg font-semibold">Total Income</h3>
-          <p className="text-xl font-bold text-green-700">₹{totalIncome}</p>
-        </div>
-        <div className="bg-red-100 p-4 rounded shadow">
-          <h3 className="text-lg font-semibold">Total Expense</h3>
-          <p className="text-xl font-bold text-red-700">₹{totalExpense}</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="grid grid-cols-2 gap-4">
+    <div className="p-4 space-y-8">
+      {/* Transaction Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-4 rounded shadow max-w-xl mx-auto space-y-4"
+      >
+        <div>
+          <label className="block">Type</label>
           <select
-            className="border p-2 rounded"
+            name="type"
             value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
           >
-            <option value="expense">Expense</option>
             <option value="income">Income</option>
+            <option value="expense">Expense</option>
           </select>
+        </div>
+        <div>
+          <label className="block">Category</label>
           <input
             type="text"
-            placeholder="Category"
-            className="border p-2 rounded"
+            name="category"
             value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            onChange={handleChange}
             required
+            className="w-full border p-2 rounded"
           />
+        </div>
+        <div>
+          <label className="block">Amount</label>
           <input
             type="number"
-            placeholder="Amount"
-            className="border p-2 rounded"
+            name="amount"
             value={form.amount}
-            onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
+            onChange={handleChange}
             required
-          />
-          <input
-            type="text"
-            placeholder="Note"
-            className="border p-2 rounded"
-            value={form.note}
-            onChange={(e) => setForm({ ...form, note: e.target.value })}
+            className="w-full border p-2 rounded"
           />
         </div>
-        <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <div>
+          <label className="block">Note</label>
+          <input
+            type="text"
+            name="note"
+            value={form.note}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
           Add Transaction
         </button>
       </form>
 
-      <div className="bg-white shadow rounded p-4">
-        <h3 className="text-xl font-semibold mb-4">Transaction History</h3>
-        <ul>
-          {transactions.map((t) => (
-            <li key={t._id} className="border-b py-2 flex justify-between">
-              <span>{t.category} ({t.note})</span>
-              <span className={t.type === "income" ? "text-green-600" : "text-red-600"}>
-                ₹{t.amount}
-              </span>
-            </li>
-          ))}
-        </ul>
+      {/* Charts Section */}
+      <div className="flex flex-wrap gap-4 justify-center">
+        <PieChartCard data={incomeData} title="Income by Category" />
+        <PieChartCard data={expenseData} title="Expenses by Category" />
       </div>
     </div>
   );

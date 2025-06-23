@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { registerUser } from "../api/auth";
 import { useNavigate } from "react-router-dom";
 
@@ -49,6 +50,12 @@ const Register = () => {
         <button className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">
           Register
         </button>
+        <p className="text-sm text-center mt-4">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            Login
+          </Link>
+        </p>
       </form>
     </div>
   );
